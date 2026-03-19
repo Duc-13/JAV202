@@ -1,4 +1,8 @@
-﻿-- 1. Bảng Danh mục (Sửa Name thành VARCHAR)
+﻿Create Database polycoffee
+Use polycoffee
+
+
+-- 1. Bảng Danh mục (Sửa Name thành VARCHAR)
 CREATE TABLE CATEGORY
 (
   Category_ID INT NOT NULL,
@@ -92,7 +96,7 @@ INSERT INTO USERS (Users_ID, Email, Password, Full_name, Phone, Active, Role) VA
 
 -- Thêm hóa đơn
 INSERT INTO BILLS (Bills_ID, Code, Created_at, Total, Status, Users_ID) VALUES 
-(1, 'HD001', '2024-05-20 10:30:00', 74000, 1, 2);
+(1, 'HD001', '2024-05-20 10:30:00', 74000, 1, 2),
 (2, 'HD002', '2024-05-21 09:15:00', 90000, 1, 4),
 (3, 'HD003', '2024-05-22 14:20:00', 75000, 1, 5),
 (4, 'HD004', '2024-05-23 18:45:00', 25000, 0, 2),
