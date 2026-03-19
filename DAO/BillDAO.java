@@ -1,26 +1,29 @@
 package com.polycoffee.dao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.polycoffee.entity.Bill;
-import com.polycoffee.entity.BillDetail;
 import com.polycoffee.util.JdbcUtil;
 
 public class BillDAO implements CrudDAO<Bill, Integer> {
-	BillDetailDAO billDetailDAO = new BillDetailDAO();
+
+	public static final int STATUS_WAITING = 0;
+	public static final int STATUS_FINISH = 1;
+	public static final int STATUS_CANCEL = 2;
 
 	@Override
 	public int create(Bill entity) {
-		// TODO Auto-generated method stub
-		String sql = "INSERT INTO bills(user_id, code, created_at, total, status) values (?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO BILLS(Users_ID, Code, Created_at, Total, Status) VALUES (?, ?, ?, ?, ?)";
 		try {
-			return JdbcUtil.executeUpdate(sql, entity.getUserId(), entity.getCode(), entity.getCreatedAt(),
-					entity.getTotal(), entity.getStatus());
+			return JdbcUtil.executeUpdate(sql,
+					entity.getUserId(),
+					entity.getCode(),
+					entity.getCreatedAt(),
+					entity.getTotal(),
+					entity.getStatus());
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 		}
 		return 0;
@@ -28,13 +31,16 @@ public class BillDAO implements CrudDAO<Bill, Integer> {
 
 	@Override
 	public int update(Bill entity) {
-		// TODO Auto-generated method stub
-		String sql = "UPDATE bills SET user_id = ?, code = ?, created_at = ?, total = ?, status = ? WHERE id = ?";
+		String sql = "UPDATE BILLS SET Users_ID=?, Code=?, Created_at=?, Total=?, Status=? WHERE Bills_ID=?";
 		try {
-			return JdbcUtil.executeUpdate(sql, entity.getUserId(), entity.getCode(), entity.getCreatedAt(),
-					entity.getTotal(), entity.getStatus(), entity.getId());
+			return JdbcUtil.executeUpdate(sql,
+					entity.getUserId(),
+					entity.getCode(),
+					entity.getCreatedAt(),
+					entity.getTotal(),
+					entity.getStatus(),
+					entity.getId());
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 		}
 		return 0;
@@ -42,122 +48,44 @@ public class BillDAO implements CrudDAO<Bill, Integer> {
 
 	@Override
 	public int delete(Integer id) {
-		// TODO Auto-generated method stub
+		String sql = "DELETE FROM BILLS WHERE Bills_ID=?";
+		try {
+			return JdbcUtil.executeUpdate(sql, id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return 0;
 	}
 
 	@Override
 	public List<Bill> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		return findBySql("SELECT * FROM BILLS");
 	}
 
 	@Override
 	public Bill findById(Integer id) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Bill> list = findBySql("SELECT * FROM BILLS WHERE Bills_ID=?", id);
+		return list.isEmpty() ? null : list.get(0);
 	}
 
 	@Override
-	public List<Bill> findBySql(String sql, Object... value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-//	Trạng thái hóa đơn
-	public static final String STATUS_WAITING = "waiting";
-	public static final String STATUS_FINISH = "finish";
-	public static final String STATUS_CANCEL = "cancel";
-
-	public Bill findByIdAndUserId(Integer id, Integer userId) {
-		String sql = "SELECT * FROM bills WHERE id = ? AND user_id = ?";
+	public List<Bill> findBySql(String sql, Object... args) {
+		List<Bill> list = new ArrayList<>();
 		try {
-			List<Bill> bills = this.findBySql(sql, id, userId);
-			if (!bills.isEmpty()) {
-				return bills.get(0);
+			ResultSet rs = JdbcUtil.executeQuery(sql, args);
+			while (rs.next()) {
+				Bill b = new Bill();
+				b.setId(rs.getInt("Bills_ID"));
+				b.setUserId(rs.getInt("Users_ID"));
+				b.setCode(rs.getString("Code"));
+				b.setCreatedAt(rs.getDate("Created_at"));
+				b.setTotal(rs.getInt("Total"));
+				b.setStatus(rs.getInt("Status"));
+				list.add(b);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return list;
 	}
-
-//	Tạo hóa đơn cùng với chi tiết hóa đơn
-	public int createWithBillDetails(Bill bill, List<BillDetail> billDetails) {
-		String sqlBill = "INSERT INTO bills(user_id, code, created_at, total, status) values (?, ?, ?, ?, ?)";
-		try {
-			PreparedStatement stmt = JdbcUtil.createPreStmt(sqlBill, bill.getUserId(), bill.getCode(),
-					bill.getCreatedAt(), bill.getTotal(), bill.getStatus());
-			int rs = stmt.executeUpdate();
-			if (rs > 0) {
-				ResultSet generatedKeys = stmt.getGeneratedKeys();
-				if (generatedKeys.next()) {
-					int billId = generatedKeys.getInt(1);
-					for (BillDetail billDetail : billDetails) {
-						billDetail.setBillId(billId);
-						billDetailDAO.create(billDetail);
-					}
-					updateTotal(billId);
-					return billId;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
-	}
-
-//	Cập nhật trạng thái hóa đơn
-	public int updateStatus(Integer billId, String status) {
-		Bill bill = this.findById(billId);
-		if (bill.getStatus().equals(STATUS_WAITING)) {
-			if (status.equals(STATUS_FINISH) || status.equals(STATUS_CANCEL)) {
-				String sql = "UPDATE bills SET status = ? WHERE id = ?";
-				try {
-					return JdbcUtil.executeUpdate(sql, status, billId);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		} else if (bill.getStatus().equals(STATUS_FINISH)) {
-			if (status.equals(STATUS_CANCEL)) {
-				String sql = "UPDATE bills SET status = ? WHERE id = ?";
-				try {
-					return JdbcUtil.executeUpdate(sql, status, billId);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return 0;
-	}
-
-//	Cập nhật tổng tiền hóa đơn
-	public int updateTotal(Integer billId) {
-		List<BillDetail> billDetails = billDetailDAO.findByBillId(billId);
-		int total = 0;
-		for (BillDetail billDetail : billDetails) {
-			total += billDetail.getPrice() * billDetail.getQuantity();
-		}
-		String sql = "UPDATE bills SET total = ? WHERE id = ?";
-		try {
-			return JdbcUtil.executeUpdate(sql, total, billId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
-	}
-
-//	Lấy danh sách hóa đơn của user theo userId
-	public List<Bill> findByUserId(Integer userId) {
-//		Lấy danh sách hóa đơn của user, sắp xếp theo trạng thái: waiting, finish, cancel
-		String sql = "SELECT * FROM bills WHERE user_id = ? ORDER BY CASE status WHEN 'waiting' THEN 1 WHEN 'finish' THEN 2 WHEN 'cancel' THEN 3 END";
-		try {
-			return this.findBySql(sql, userId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new ArrayList<Bill>();
-	}
-
 }
