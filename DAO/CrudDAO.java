@@ -1,18 +1,18 @@
 package com.polycoffee.dao;
 
 import java.util.List;
-public interface CrudDAO<T, K> {
+
+public interface CrudDAO<T, ID> {
 
 	int create(T entity);
 
 	int update(T entity);
 
-	int delete(K id);
+	int delete(ID id);
 
 	List<T> findAll();
 
-	T findById(K id);
+	T findById(ID id);
 
-	// Query
-	List<T> findBySql(String sql, Object... params);
+	List<T> findBySql(String sql, Object... args);
 }
