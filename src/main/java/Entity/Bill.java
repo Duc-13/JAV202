@@ -1,4 +1,4 @@
-package com.polycoffee.entity;
+package Entity;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package com.polycoffee.entity;
+package Entity;
 
 public class BillDetail {
 	private Integer id;

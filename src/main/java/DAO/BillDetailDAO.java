@@ -1,11 +1,12 @@
-package com.polycoffee.dao;
+package DAO;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.polycoffee.entity.BillDetail;
-import com.polycoffee.util.JdbcUtil;
+import Entity.BillDetail;
+import Until.JdbcUtil;
+
 
 public class BillDetailDAO implements CrudDAO<BillDetail, Integer> {
 

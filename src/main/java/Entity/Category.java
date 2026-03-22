@@ -1,4 +1,4 @@
-package com.polycoffee.entity;
+package Entity;
 
 public class Category {
 	private Integer id;
