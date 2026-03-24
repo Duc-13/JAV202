@@ -1,66 +1,63 @@
-﻿Create Database polycoffee
-Use polycoffee
+﻿CREATE DATABASE polycoffee;
+GO
+USE polycoffee;
+GO
 
-
--- 1. Bảng Danh mục (Sửa Name thành VARCHAR)
+-- ================= CATEGORY =================
 CREATE TABLE CATEGORY
 (
-  Category_ID INT NOT NULL,
+  Category_ID INT IDENTITY(1,1) PRIMARY KEY,
   Name NVARCHAR(100) NOT NULL,
-  Active BIT NOT NULL DEFAULT 1, -- Sử dụng BIT (0/1) cho trạng thái
-  PRIMARY KEY (Category_ID)
+  Active BIT NOT NULL DEFAULT 1
 );
 
--- 2. Bảng Đồ uống (Sửa Name, Image, Description và Price)
+-- ================= DRINKS =================
 CREATE TABLE DRINKS
 (
-  Drinks_ID INT NOT NULL,
+  Drinks_ID INT IDENTITY(1,1) PRIMARY KEY,
   Name NVARCHAR(200) NOT NULL,
-  Price DECIMAL(18, 2) NOT NULL, -- Giá tiền nên dùng Decimal để chính xác
-  Image VARCHAR(MAX),            -- Lưu đường dẫn ảnh hoặc Base64
+  Price INT NOT NULL, -- FIX: đổi từ DECIMAL -> INT
+  Image VARCHAR(255),
   Description NVARCHAR(500),
   Active BIT NOT NULL DEFAULT 1,
   Category_ID INT NOT NULL,
-  PRIMARY KEY (Drinks_ID),
   FOREIGN KEY (Category_ID) REFERENCES CATEGORY(Category_ID)
 );
 
--- 3. Bảng Người dùng (Sửa Email, Password, Full_name...)
+-- ================= USERS =================
 CREATE TABLE USERS
 (
-  Users_ID INT NOT NULL,
+  Users_ID INT IDENTITY(1,1) PRIMARY KEY,
   Email VARCHAR(100) NOT NULL UNIQUE,
   Password VARCHAR(255) NOT NULL,
   Full_name NVARCHAR(200) NOT NULL,
   Phone VARCHAR(15),
   Active BIT NOT NULL DEFAULT 1,
-  Role INT NOT NULL, -- 0: Admin, 1: Customer chẳng hạn
-  PRIMARY KEY (Users_ID)
+  Role BIT NOT NULL DEFAULT 0 -- FIX: 1=MANAGER, 0=EMPLOYEE
 );
 
--- 4. Bảng Hóa đơn (Sửa Code, Created_at)
+-- ================= BILLS =================
 CREATE TABLE BILLS
 (
-  Bills_ID INT NOT NULL,
-  Code VARCHAR(20) NOT NULL,
+  Bills_ID INT IDENTITY(1,1) PRIMARY KEY,
+  Code VARCHAR(50) NOT NULL,
   Created_at DATETIME DEFAULT GETDATE(),
-  Total DECIMAL(18, 2) NOT NULL,
-  Status INT NOT NULL, -- 0: Chờ xử lý, 1: Đã thanh toán, 2: Hủy
+  Total INT NOT NULL DEFAULT 0,
+  Status INT NOT NULL DEFAULT 0, -- 0: WAITING
   Users_ID INT NOT NULL,
-  PRIMARY KEY (Bills_ID),
   FOREIGN KEY (Users_ID) REFERENCES USERS(Users_ID)
 );
 
--- 5. Bảng Chi tiết hóa đơn
+-- ================= BILL DETAILS =================
 CREATE TABLE BILL_DETAILS
 (
-  Price DECIMAL(18, 2) NOT NULL,
-  Quantity INT NOT NULL,
-  Drinks_ID INT NOT NULL,
   Bills_ID INT NOT NULL,
+  Drinks_ID INT NOT NULL,
+  Quantity INT NOT NULL,
+  Price INT NOT NULL,
   PRIMARY KEY (Drinks_ID, Bills_ID),
   FOREIGN KEY (Drinks_ID) REFERENCES DRINKS(Drinks_ID),
-  FOREIGN KEY (Bills_ID) REFERENCES BILLS(Bills_ID)
+  FOREIGN KEY (Bills_ID) REFERENCES BILLS(Bills_ID) ON DELETE CASCADE
 );
 
 
